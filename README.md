@@ -1,20 +1,24 @@
-# 🚀 Automated Dataset Generation System
+# 🏛️ AI Governance Dataset Generator
 
-A production-ready tool that automatically generates comprehensive testing datasets from feature names using AI-powered scenario discovery.
+A production-ready AI governance tool that generates comprehensive datasets with compliance metadata for **ISO 42001**, **fairness testing**, and **explainability analysis**.
 
-## What it does
+## 🎯 What it does
 
-Takes your feature names and domain context → Generates production-quality testing datasets automatically:
+**Foundation dataset generator for complete AI governance pipeline:**
 
-- **🧠 AI Scenario Discovery**: Uses LLMs to discover all possible testing scenarios
-- **📊 Comprehensive Coverage**: Generates bias testing, edge cases, boundary conditions
-- **🎯 Domain-Specific**: Tailored datasets for loan approval, fraud detection, etc.
-- **⚡ Multiple Formats**: Outputs CSV, JSON, Parquet, Excel
-- **🔍 Complete Audit Trail**: Logs all LLM interactions for debugging/improvement
+- **🏛️ ISO 42001 Compliance**: Risk management, audit trails, governance documentation
+- **⚖️ Fairness Testing**: Protected class combinations, bias detection scenarios
+- **🔬 Explainability**: Decision boundary cases, complex interaction patterns
+- **📋 Complete Audit Trail**: LLM interactions, governance metadata, compliance tracking
+- **🎯 Governance-First Design**: Every record tagged with compliance requirements
 
-Perfect for ML engineers who need comprehensive test datasets without manual scenario design!
+**Perfect foundation for Steps 2, 3, 4:**
 
-## Quick Start
+- **Step 2**: ISO 42001 audit framework (uses governance metadata)
+- **Step 3**: Fairness testing suite (uses bias testing records)
+- **Step 4**: Explainability analyzer (uses complexity classifications)
+
+## 🚀 Quick Start
 
 ### 1. Install Dependencies
 
@@ -28,20 +32,23 @@ pip install -r requirements.txt
 # Install Ollama
 curl -fsSL https://ollama.ai/install.sh | sh
 
-# Pull a model (choose one)
-ollama pull llama3.2:3b      # Fast, good for testing
-ollama pull gpt-oss:20b      # Larger, more comprehensive
+# Pull models for governance analysis
+ollama pull llama3.2:3b      # Fast, good governance coverage
+ollama pull gpt-oss:20b      # Comprehensive governance scenarios
 ```
 
-### 3. Generate Dataset
+### 3. Generate Governance Dataset
 
-**Simple Usage:**
+**Simple Governance Dataset:**
 
 ```bash
-python3 auto_dataset_cli.py age income credit_score employment_status loan_type target --context "loan approval" --size 1000 --formats csv json
+python3 auto_dataset_cli.py age income credit_score employment_status target \
+  --context "loan approval" \
+  --size 1000 \
+  --formats csv governance_report
 ```
 
-**Full Example:**
+**Full Governance Dataset:**
 
 ```bash
 python3 auto_dataset_cli.py \
@@ -51,162 +58,203 @@ python3 auto_dataset_cli.py \
   bank_relationship gender race age_group disability_status \
   marital_status religion zip_code target \
   --context "loan approval" \
-  --size 1000 \
-  --formats csv json \
+  --size 5000 \
+  --formats csv json governance_report \
   --llm-model "llama3.2:3b"
 ```
 
 ### 4. Quick Testing (No LLM)
 
 ```bash
-python3 quick_dataset_cli.py age income credit_score target --context "loan approval" --size 100
+python3 quick_dataset_cli.py age income credit_score target \
+  --context "loan approval" \
+  --size 100
 ```
 
-## 🎯 How It Works
+## 🏛️ AI Governance Features
 
-### Step 1: AI Scenario Discovery
+### ISO 42001 Compliance Ready
 
-The system sends your features to an LLM with a comprehensive prompt that discovers:
+- **Risk categorization**: low/medium/high/critical for each record
+- **Audit trail IDs**: Complete traceability from LLM prompt to data point
+- **Governance metadata**: Embedded in every record
+- **Documentation**: Automatic compliance report generation
 
-- **Demographic combinations** for bias testing
-- **Domain-specific profiles** (high/low risk, different income levels)
-- **Edge cases** (unusual but valid combinations)
-- **Stress testing** (boundary values, extreme cases)
+### Fairness Testing Optimized
 
-### Step 2: Intelligent Dataset Generation
+- **Protected class combinations**: Gender, race, age, disability intersections
+- **Bias testing flags**: 40% of records specifically for bias detection
+- **Demographic parity scenarios**: Systematic coverage of all groups
+- **Historical discrimination patterns**: Known bias scenarios for testing
 
-For each discovered scenario:
+### Explainability Enhanced
 
-- **Realistic data generation** with proper correlations
-- **Mathematical consistency** (debt-to-income ratios, age vs experience)
-- **Domain expertise** (loan amounts match income levels)
-- **Bias testing coverage** (protected classes, geographic variations)
+- **Complexity classification**: Simple/moderate/complex/edge_case per record
+- **Decision boundary flags**: Edge cases requiring explanation
+- **Feature interaction patterns**: Multi-factor decision scenarios
+- **Stakeholder explanation targets**: Different explanation needs
 
-### Step 3: Production Export
+## 📊 Governance Dataset Structure
 
-- Multiple file formats
-- Comprehensive statistics
-- Full LLM interaction logs
-- Ready for immediate ML testing
+### Core Features
 
-## 🔧 Advanced Usage
-
-### Custom LLM Models
-
-```bash
-# Use different models
---llm-model "llama3.1"
---llm-model "mistral"
---llm-model "gpt-oss:20b"
+```
+Standard features: age, income, credit_score, target, etc.
 ```
 
-### Multiple Output Formats
+### Governance Metadata (Added to Every Record)
 
-```bash
---formats csv json parquet excel
+```
+gov_record_id              # Unique identifier
+gov_generation_timestamp   # When record was created
+gov_scenario_source        # Which LLM scenario generated this
+gov_llm_model              # Which LLM model was used
+gov_llm_prompt_hash        # Hash of the prompt used
+gov_bias_testing_flag      # True if for bias testing
+gov_protected_classes      # Which protected classes involved
+gov_risk_category          # ISO 42001 risk level
+gov_audit_trail_id        # Complete audit trail
+gov_compliance_tags        # Applicable compliance requirements
+gov_explainability_complexity  # Explanation difficulty
+gov_decision_boundary_flag # True if edge case
+gov_synthetic_flag         # Data provenance
 ```
 
-### Custom Output Directory
+### Compliance Report (Auto-Generated)
 
-```bash
---output-dir "my_datasets"
+```json
+{
+  "iso42001_compliance": {
+    "risk_management": {...},
+    "fairness_testing": {...},
+    "transparency": {...}
+  },
+  "eu_ai_act_compliance": {
+    "article_13_transparency": {...},
+    "article_15_fairness": {...}
+  },
+  "recommendations": {...}
+}
 ```
+
+## 🎯 Example Governance Output
+
+**Generated Governance Scenarios:**
+
+- Gender Bias Testing - Female Applicants (Critical Risk)
+- Racial Bias Testing - Minority Groups (Critical Risk)
+- Age Discrimination - Senior Citizens (High Risk)
+- Complex Decision Boundary Analysis (Edge Case)
+- High-Risk Decision Documentation (Audit Trail)
+- Intersectional Bias Testing (Multiple Protected Classes)
+
+**Compliance Metrics:**
+
+```
+📊 Dataset Metrics:
+• Total Records: 5,000
+• Bias Testing Records: 2,000 (40%)
+• Critical Risk Records: 750 (15%)
+
+🎯 Compliance Coverage:
+• ISO 42001: ✅ Ready
+• Bias Testing: ✅ Ready
+• Explainability: ✅ Ready
+• Audit Trail: ✅ Complete
+```
+
+**File Outputs:**
+
+- `governance_loan_approval_20250821_120500.csv` - Main dataset with governance metadata
+- `governance_loan_approval_20250821_120500_compliance_report.json` - Full compliance documentation
+- `governance_llm_interactions/governance_interaction_20250821_120500.txt` - Complete LLM audit trail
+
+## 🔗 AI Governance Pipeline Integration
+
+This tool is **Step 1** of a complete AI governance ecosystem:
+
+### **Step 1: ai-dataset-generator** ✅ (This Repository)
+
+- Generates governance-ready datasets
+- Embeds compliance metadata
+- Creates audit trails
+
+### **Step 2: iso42001-audit-framework** 🔄 (Next)
+
+- Reads governance metadata
+- Automated compliance checking
+- Risk assessment validation
+
+### **Step 3: fairness-testing-suite** 🔄 (Next)
+
+- Uses bias_testing_flag records
+- Protected class analysis
+- Demographic parity testing
+
+### **Step 4: explainability-analyzer** 🔄 (Next)
+
+- Uses explainability_complexity fields
+- Decision boundary analysis
+- Stakeholder explanations
 
 ## 📁 Project Structure
 
 ### Core Files
 
-- `auto_dataset_cli.py` - Main automated CLI with LLM integration
-- `loan_dataset_generator.py` - Core dataset generation logic
-- `quick_dataset_cli.py` - Quick testing without LLM (uses predefined scenarios)
-- `requirements.txt` - Python dependencies
+- `auto_dataset_cli.py` - Main governance dataset CLI
+- `ai_governance_dataset_generator.py` - Enhanced generator with governance metadata
+- `quick_dataset_cli.py` - Quick testing without LLM
+- `requirements.txt` - Dependencies
 
-### Generated Files
+### Generated Outputs
 
-- `generated_datasets/` - Output datasets in multiple formats
-- `llm_interactions/` - Complete LLM prompt/response logs for debugging
+- `governance_datasets/` - Datasets with embedded governance metadata
+- `governance_llm_interactions/` - Complete LLM audit trails for compliance
 
-### Test Files
+## 🛠️ Advanced Governance Usage
 
-- `model_v2_final.pkl` - Sample model for testing extraction
+### Custom Compliance Requirements
 
-## 🎯 Example Output
+```bash
+# Focus on bias testing
+--size 2000 # Smaller, bias-focused dataset
 
-**Generated Scenarios (20+ discovered by LLM):**
-
-- Young Professional
-- Senior Citizen Bias Testing
-- Historical Discrimination Patterns
-- High-Value Homebuyer
-- Subprime Borrower
-- Geographic Bias Testing
-- Extreme Credit Score Edge Cases
-- Mathematical Boundary Conditions
-
-**Dataset Statistics:**
-
-```
-📊 Generated Dataset:
-• Rows: 1,000
-• Columns: 22
-• Scenarios: 20
-• Bias testing coverage: Comprehensive
-
-🎯 Target Distribution:
-• Approved: 486
-• Denied: 514
+# Complex explainability scenarios
+--llm-model "gpt-oss:20b" # More sophisticated scenarios
 ```
 
-**File Outputs:**
+### Integration with Next Steps
 
-- `loan_approval_20250821_120500.csv` - Main dataset
-- `loan_approval_20250821_120500.json` - JSON format
-- `llm_interactions/interaction_20250821_120500.txt` - Full LLM log
+```python
+# Load governance dataset for Step 2 (ISO 42001 audit)
+df = pd.read_csv('governance_loan_approval.csv')
+critical_records = df[df['gov_risk_category'] == 'critical']
 
-## 🚀 Production Features
+# For Step 3 (fairness testing)
+bias_test_records = df[df['gov_bias_testing_flag'] == True]
 
-### Comprehensive Testing Coverage
+# For Step 4 (explainability)
+complex_cases = df[df['gov_explainability_complexity'] == 'edge_case']
+```
 
-- **Bias Testing**: Age, gender, race, disability status combinations
-- **Edge Cases**: Unusual but valid data combinations
-- **Stress Testing**: Boundary values and extreme scenarios
-- **Domain Expertise**: Realistic financial relationships
+## 🎯 Production Governance Benefits
+
+### Regulatory Compliance
+
+- **EU AI Act Article 13**: Transparency requirements covered
+- **EU AI Act Article 15**: Fairness testing data ready
+- **ISO 42001**: Complete management system data
+
+### Risk Management
+
+- **Risk-categorized records**: Focus testing on high-risk scenarios
+- **Complete audit trails**: From LLM prompt to final decision
+- **Documentation automation**: Compliance reports auto-generated
 
 ### Quality Assurance
 
-- **Mathematical Consistency**: All derived fields calculated correctly
-- **Business Logic**: Loan amounts correlate with income and credit
-- **Constraint Validation**: All values within realistic ranges
-- **Audit Trail**: Complete LLM interaction logs
+- **Systematic bias coverage**: All protected class combinations
+- **Explainability readiness**: Pre-classified complexity levels
+- **Data provenance**: Complete generation lineage
 
-### Scalability
-
-- **Multiple LLM Models**: Choose speed vs. comprehensiveness
-- **Flexible Output**: 100 rows for testing to 100K+ for production
-- **Multiple Formats**: Direct integration with any ML pipeline
-
-## 🛠️ Troubleshooting
-
-### LLM Issues
-
-```bash
-# Check Ollama is running
-ollama list
-
-# Test model
-ollama run llama3.2:3b "Hello"
-```
-
-### Performance Tips
-
-- Use `llama3.2:3b` for speed
-- Use `gpt-oss:20b` for comprehensive scenarios
-- Start with small datasets (--size 100) for testing
-
-### Common Issues
-
-- **Timeout errors**: Use smaller models or increase timeout
-- **Memory issues**: Reduce dataset size or use quick_dataset_cli.py
-- **Missing features**: Check that all requested features are supported
-
-Perfect for ML engineers who need production-ready test datasets without manual scenario design! 🎯📊
+Perfect foundation for building **production-ready AI governance systems** that ensure compliance, fairness, and explainability! 🏛️⚖️🔬
