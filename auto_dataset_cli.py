@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
 """
 AI Dataset Generation CLI
-Takes feature names → Generates comprehensive test datasets for downstream AI analysis
+
+Generic AI Dataset Generator using reusable LLM core services for dynamic model
+selection and integration to synthesize structured datasets from user-provided context prompts.
+
+Features:
+- AWS LLM Core Services integration with dynamic model selection
+- MLOps pipelines featuring RAG, fine-tuning, and guardrails
+- Automated evaluation strategies for data integrity validation
+- Comprehensive test coverage for bias testing and compliance
 """
 
 import argparse
@@ -24,14 +32,43 @@ from rich.panel import Panel
 # Import our enhanced governance generator
 from ai_governance_dataset_generator import AIGovernanceDatasetGenerator, LoanScenario
 
+# Import AWS LLM Core Services and MLOps Pipeline
+from aws_llm_services import LLMCoreService, create_llm_service, AWSConfig, ModelConfig
+from mlops_pipeline import (
+    MLOpsPipeline, 
+    create_mlops_pipeline,
+    RAGPipeline,
+    GuardrailsPipeline,
+    AutomatedEvaluationPipeline
+)
+
 console = Console()
 
 class AIDatasetCLI:
-    """AI Dataset Generation CLI for comprehensive test data"""
+    """
+    AI Dataset Generation CLI for comprehensive test data.
     
-    def __init__(self, llm_model: str = "gpt-oss:20b"):
+    Integrates AWS LLM Core Services for dynamic model selection and
+    MLOps pipelines featuring RAG, fine-tuning, guardrails, and automated evaluation.
+    """
+    
+    def __init__(self, llm_model: str = "gpt-oss:20b", aws_region: str = "us-east-1",
+                 enable_rag: bool = True, enable_guardrails: bool = True):
         self.llm_model = llm_model
         self.console = console
+        
+        # Initialize AWS LLM Core Services
+        self.llm_service = create_llm_service(
+            aws_region=aws_region,
+            default_model=llm_model,
+            enable_bedrock=True,
+            enable_sagemaker=False
+        )
+        
+        # Initialize MLOps Pipeline
+        self.mlops_pipeline = None
+        self.enable_rag = enable_rag
+        self.enable_guardrails = enable_guardrails
         
     def generate_comprehensive_dataset(self, 
                                      feature_names: List[str],
@@ -40,7 +77,10 @@ class AIDatasetCLI:
                                      output_formats: List[str] = ['csv'],
                                      output_dir: str = "datasets") -> Dict[str, Any]:
         """
-        Generate comprehensive test dataset for downstream AI analysis
+        Generate comprehensive test dataset for downstream AI analysis.
+        
+        Uses AWS LLM Core Services with dynamic model selection and MLOps pipelines
+        featuring RAG, guardrails, and automated evaluation for high-quality outputs.
         
         Args:
             feature_names: List of feature column names
@@ -53,12 +93,18 @@ class AIDatasetCLI:
             Dict with generation results and dataset statistics
         """
         
+        # Initialize MLOps pipeline for this context
+        self._initialize_mlops_pipeline(context)
+        
         self.console.print(Panel(
-            f"🚀 [bold blue]AI Dataset Generation[/bold blue]\n"
+            f"[bold blue]AI Dataset Generation[/bold blue]\n"
             f"Features: {len(feature_names)} columns\n"
             f"Context: {context}\n"
             f"Target size: {output_size:,} rows\n"
-            f"🎯 Comprehensive test data for downstream analysis",
+            f"LLM Model: {self.llm_model}\n"
+            f"RAG Enabled: {self.enable_rag}\n"
+            f"Guardrails Enabled: {self.enable_guardrails}\n"
+            f"Comprehensive test data with MLOps pipeline",
             title="Dataset Generation Pipeline"
         ))
         
@@ -70,30 +116,67 @@ class AIDatasetCLI:
             'scenarios_discovered': 0,
             'dataset_stats': {},
             'coverage_metrics': {},
+            'mlops_metrics': {},
+            'guardrail_results': {},
+            'evaluation_results': {},
             'errors': []
         }
         
         try:
-            # Step 1: Generate LLM prompt for comprehensive scenario discovery
+            # Step 1: Generate LLM prompt with RAG enhancement
             with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}")) as progress:
-                task1 = progress.add_task("🧠 Generating comprehensive test scenario prompt...", total=None)
-                prompt = self._create_comprehensive_scenario_prompt(feature_names, context)
+                task1 = progress.add_task("Generating RAG-enhanced scenario prompt...", total=None)
+                prompt, rag_metadata = self._create_rag_enhanced_prompt(feature_names, context)
                 prompt_hash = hashlib.md5(prompt.encode()).hexdigest()
+                results['mlops_metrics']['rag'] = rag_metadata
                 progress.update(task1, completed=True)
             
-            # Step 2: Query LLM for comprehensive test scenarios
+            # Step 2: Apply input guardrails
+            if self.enable_guardrails and self.mlops_pipeline:
+                with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}")) as progress:
+                    task_guard = progress.add_task("Applying input guardrails...", total=None)
+                    guardrail_result = self.mlops_pipeline.guardrails.check_input(prompt)
+                    results['guardrail_results']['input'] = guardrail_result.to_dict()
+                    if not guardrail_result.passed:
+                        results['errors'].append("Input blocked by guardrails")
+                        return results
+                    progress.update(task_guard, completed=True)
+            
+            # Step 3: Query LLM using AWS Core Services with dynamic model selection
             with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}")) as progress:
-                task2 = progress.add_task("🤖 Querying LLM for test scenarios...", total=None)
-                llm_response = self._query_llm(prompt)
+                task2 = progress.add_task("Querying LLM for test scenarios...", total=None)
+                
+                # Use dynamic model selection
+                optimal_model = self.llm_service.select_optimal_model(
+                    task_type="analysis",
+                    prefer_local=True
+                )
+                self.console.print(f"[dim]Selected model: {optimal_model}[/dim]")
+                
+                llm_response = self._query_llm_with_service(prompt, optimal_model)
                 progress.update(task2, completed=True)
+            
+            if not llm_response:
+                # Fallback to direct Ollama query
+                llm_response = self._query_llm(prompt)
             
             if not llm_response:
                 results['errors'].append("Failed to get LLM response")
                 return results
             
-            # Step 3: Parse LLM response into test scenarios
+            # Step 4: Apply output guardrails
+            if self.enable_guardrails and self.mlops_pipeline:
+                with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}")) as progress:
+                    task_guard_out = progress.add_task("Applying output guardrails...", total=None)
+                    output_guardrail = self.mlops_pipeline.guardrails.check_output(llm_response)
+                    results['guardrail_results']['output'] = output_guardrail.to_dict()
+                    if output_guardrail.sanitized_content:
+                        llm_response = output_guardrail.sanitized_content
+                    progress.update(task_guard_out, completed=True)
+            
+            # Step 5: Parse LLM response into test scenarios
             with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}")) as progress:
-                task3 = progress.add_task("📋 Parsing test scenarios...", total=None)
+                task3 = progress.add_task("Parsing test scenarios...", total=None)
                 scenarios = self._parse_test_scenarios(llm_response, feature_names, context)
                 progress.update(task3, completed=True)
             
@@ -103,9 +186,9 @@ class AIDatasetCLI:
                 results['errors'].append("No valid scenarios extracted from LLM response")
                 return results
             
-            # Step 4: Generate comprehensive test dataset
+            # Step 6: Generate comprehensive test dataset
             with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}")) as progress:
-                task4 = progress.add_task(f"📊 Generating test dataset ({output_size:,} rows)...", total=None)
+                task4 = progress.add_task(f"Generating test dataset ({output_size:,} rows)...", total=None)
                 dataset, dataset_metrics = self._generate_test_dataset_from_scenarios(
                     scenarios, feature_names, output_size, prompt_hash
                 )
@@ -113,9 +196,17 @@ class AIDatasetCLI:
             
             results['dataset_stats'] = dataset_metrics
             
-            # Step 5: Export dataset
+            # Step 7: Automated evaluation of generated dataset
+            if self.mlops_pipeline:
+                with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}")) as progress:
+                    task_eval = progress.add_task("Running automated evaluation...", total=None)
+                    eval_results = self._run_automated_evaluation(dataset, feature_names)
+                    results['evaluation_results'] = eval_results
+                    progress.update(task_eval, completed=True)
+            
+            # Step 8: Export dataset
             with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}")) as progress:
-                task5 = progress.add_task("💾 Exporting dataset...", total=None)
+                task5 = progress.add_task("Exporting dataset...", total=None)
                 exported_files = self._export_test_dataset(
                     dataset, feature_names, context, output_formats, output_dir
                 )
@@ -127,6 +218,13 @@ class AIDatasetCLI:
             # Generate coverage metrics
             results['coverage_metrics'] = self._generate_coverage_metrics(dataset)
             
+            # Add MLOps pipeline metrics
+            if self.mlops_pipeline:
+                results['mlops_metrics']['pipeline'] = self.mlops_pipeline.get_pipeline_metrics()
+            
+            # Add LLM service metrics
+            results['mlops_metrics']['llm_service'] = self.llm_service.get_metrics()
+            
             # Display success summary
             self._display_success_summary(results)
             
@@ -134,12 +232,91 @@ class AIDatasetCLI:
             import traceback
             error_details = traceback.format_exc()
             results['errors'].append(str(e))
-            self.console.print(f"[red]❌ Error in pipeline: {e}[/red]")
+            self.console.print(f"[red]Error in pipeline: {e}[/red]")
             self.console.print(f"[red]Full traceback:[/red]")
             self.console.print(error_details)
         
         return results
     
+    def _initialize_mlops_pipeline(self, context: str):
+        """Initialize MLOps pipeline with RAG, guardrails, and evaluation for the given context."""
+        # Map context to domain
+        domain_mapping = {
+            'loan': 'loan_approval',
+            'credit': 'loan_approval',
+            'fraud': 'fraud_detection',
+            'hiring': 'hiring',
+            'employment': 'hiring'
+        }
+        
+        domain = 'loan_approval'  # Default
+        for key, value in domain_mapping.items():
+            if key in context.lower():
+                domain = value
+                break
+        
+        self.mlops_pipeline = create_mlops_pipeline(
+            llm_service=self.llm_service,
+            domain=domain
+        )
+        self.console.print(f"[dim]MLOps pipeline initialized for domain: {domain}[/dim]")
+    
+    def _create_rag_enhanced_prompt(self, feature_names: List[str], context: str) -> tuple:
+        """Create LLM prompt with RAG enhancement for domain-specific context."""
+        base_prompt = self._create_comprehensive_scenario_prompt(feature_names, context)
+        
+        if self.enable_rag and self.mlops_pipeline:
+            # Get RAG-enhanced context
+            enhanced_prompt, rag_metadata = self.mlops_pipeline.rag.generate_with_context(
+                query=f"{context} {' '.join(feature_names)}",
+                base_prompt=base_prompt
+            )
+            return enhanced_prompt, rag_metadata
+        
+        return base_prompt, {"rag_enabled": False}
+    
+    def _query_llm_with_service(self, prompt: str, model: str = None) -> Optional[str]:
+        """Query LLM using AWS LLM Core Service with dynamic model selection."""
+        try:
+            response = self.llm_service.generate(
+                prompt=prompt,
+                model=model,
+                temperature=0.7
+            )
+            
+            if response and response.content:
+                # Save interaction for audit trail
+                self._save_llm_interaction(prompt, response.content)
+                return response.content
+            
+        except Exception as e:
+            self.console.print(f"[yellow]LLM service query failed: {e}, falling back to direct query[/yellow]")
+        
+        return None
+    
+    def _run_automated_evaluation(self, dataset: pd.DataFrame, feature_names: List[str]) -> Dict[str, Any]:
+        """Run automated evaluation on generated dataset."""
+        if not self.mlops_pipeline:
+            return {}
+        
+        # Convert DataFrame to dict format for evaluation
+        data_dict = {col: dataset[col].tolist() for col in dataset.columns}
+        
+        # Create schema from feature names
+        schema = {}
+        for col in dataset.columns:
+            if dataset[col].dtype in ['int64', 'int32']:
+                schema[col] = 'int'
+            elif dataset[col].dtype in ['float64', 'float32']:
+                schema[col] = 'float'
+            else:
+                schema[col] = 'str'
+        
+        # Run evaluation
+        eval_results = self.mlops_pipeline.evaluate_generated_dataset(data_dict, schema)
+        
+        return eval_results
+
     def _create_comprehensive_scenario_prompt(self, feature_names: List[str], context: str) -> str:
         """Create LLM prompt for comprehensive test scenario discovery"""
         
@@ -235,7 +412,7 @@ Generate at least 20-25 distinct scenarios that together provide complete test c
             
             f.write("=" * 80 + "\n")
         
-        self.console.print(f"[dim]💾 Saved LLM interaction to: {interaction_file}[/dim]")
+        self.console.print(f"[dim]Saved LLM interaction to: {interaction_file}[/dim]")
     
     def _query_llm(self, prompt: str) -> Optional[str]:
         """Query LLM using Ollama"""
@@ -513,27 +690,27 @@ Generate at least 20-25 distinct scenarios that together provide complete test c
         
         # Success panel
         success_text = f"""
-✅ [green]Test Dataset Generated![/green]
+[green]Test Dataset Generated![/green]
 
-📊 **Dataset Metrics:**
+**Dataset Metrics:**
 • Total Records: {results['dataset_stats'].get('total_rows', 'N/A'):,}
 • Total Columns: {results['dataset_stats'].get('total_columns', 'N/A')}
 • Test Scenarios: {results['scenarios_discovered']}
 
-🎯 **Coverage:**
+**Coverage:**
 • Feature Coverage: {results['dataset_stats'].get('feature_coverage', 0):.1%}
 • Comprehensive test scenarios discovered by LLM
 • Ready for downstream analysis tools
 
-🧠 **LLM Analysis:**
+**LLM Analysis:**
 • Domain Context: {results['context']}
 • Comprehensive scenario discovery completed
 
-💾 **Generated Files:**
+**Generated Files:**
 {chr(10).join(f"• {Path(f).name}" for f in results['generated_files'])}
         """
         
-        self.console.print(Panel(success_text, title="✅ Success", border_style="green"))
+        self.console.print(Panel(success_text, title="Success", border_style="green"))
         
         # Coverage metrics table
         if 'coverage_metrics' in results and 'demographic_diversity' in results['coverage_metrics']:
@@ -599,12 +776,12 @@ def main():
     
     # Display input summary
     console.print(Panel(
-        f"🎯 **Features:** {', '.join(args.features[:5])}{'...' if len(args.features) > 5 else ''}\n"
-        f"🎯 **Context:** {args.context}\n"
-        f"🎯 **Target Size:** {args.size:,} rows\n"
-        f"🎯 **Formats:** {', '.join(args.formats)}\n"
-        f"📊 **Purpose:** Comprehensive test data for downstream analysis",
-        title="🚀 AI Dataset Generation",
+        f"**Features:** {', '.join(args.features[:5])}{'...' if len(args.features) > 5 else ''}\n"
+        f"**Context:** {args.context}\n"
+        f"**Target Size:** {args.size:,} rows\n"
+        f"**Formats:** {', '.join(args.formats)}\n"
+        f"**Purpose:** Comprehensive test data for downstream analysis",
+        title="AI Dataset Generation",
         border_style="blue"
     ))
     
@@ -618,11 +795,11 @@ def main():
     )
     
     if results['success']:
-        console.print(f"\n[green]🚀 Success! Test dataset generated in: {args.output_dir}[/green]")
-        console.print(f"[green]📊 Ready for downstream analysis tools![/green]")
+        console.print(f"\n[green]Success! Test dataset generated in: {args.output_dir}[/green]")
+        console.print(f"[green]Ready for downstream analysis tools![/green]")
         sys.exit(0)
     else:
-        console.print(f"\n[red]❌ Generation failed: {', '.join(results['errors'])}[/red]")
+        console.print(f"\n[red]Generation failed: {', '.join(results['errors'])}[/red]")
         sys.exit(1)
 
 if __name__ == "__main__":

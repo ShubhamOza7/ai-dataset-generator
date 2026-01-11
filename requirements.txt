@@ -1,4 +1,4 @@
-# Core dependencies for model parameter extraction
+# Core dependencies for AI Dataset Generator
 pandas>=1.5.0
 numpy>=1.20.0
 scikit-learn>=1.0.0
@@ -6,8 +6,21 @@ scikit-learn>=1.0.0
 # CLI interface
 rich>=12.0.0
 
+# AWS SDK (for AWS LLM Core Services)
+# Uncomment when deploying to AWS
+# boto3>=1.26.0
+# botocore>=1.29.0
+
+# Parquet support
+pyarrow>=10.0.0
+
 # Optional ML frameworks (install as needed)
 # xgboost>=1.5.0
 # lightgbm>=3.3.0
 # tensorflow>=2.8.0
 # torch>=1.11.0
+
+# Development dependencies
+# pytest>=7.0.0
+# black>=22.0.0
+# mypy>=0.990

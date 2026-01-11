@@ -152,22 +152,22 @@ def quick_generate_dataset(feature_names, context, output_size, output_formats, 
     """Quick dataset generation without LLM"""
     
     console.print(Panel(
-        f"⚡ [bold yellow]Quick Mode - No LLM Required[/bold yellow]\n"
+        f"[bold yellow]Quick Mode - No LLM Required[/bold yellow]\n"
         f"Features: {len(feature_names)} columns\n"
         f"Context: {context}\n"
         f"Target size: {output_size:,} rows",
-        title="⚡ Fast Generation Mode"
+        title="Fast Generation Mode"
     ))
     
     # Step 1: Create scenarios
     with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}")) as progress:
-        task1 = progress.add_task("📋 Creating predefined scenarios...", total=None)
+        task1 = progress.add_task("Creating predefined scenarios...", total=None)
         scenario_defs = create_quick_scenarios(feature_names, context)
         progress.update(task1, completed=True)
     
     # Step 2: Convert to LoanScenario objects
     with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}")) as progress:
-        task2 = progress.add_task("🔄 Setting up scenarios...", total=None)
+        task2 = progress.add_task("Setting up scenarios...", total=None)
         
         loan_scenarios = []
         for scenario_def in scenario_defs:
@@ -183,7 +183,7 @@ def quick_generate_dataset(feature_names, context, output_size, output_formats, 
     
     # Step 3: Generate dataset
     with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}")) as progress:
-        task3 = progress.add_task(f"📊 Generating {output_size:,} row dataset...", total=None)
+        task3 = progress.add_task(f"Generating {output_size:,} row dataset...", total=None)
         
         # Initialize generator
         generator = LoanDatasetGenerator(seed=42)
@@ -204,7 +204,7 @@ def quick_generate_dataset(feature_names, context, output_size, output_formats, 
     
     # Step 4: Export dataset
     with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}")) as progress:
-        task4 = progress.add_task("💾 Exporting dataset...", total=None)
+        task4 = progress.add_task("Exporting dataset...", total=None)
         
         # Create output directory
         Path(output_dir).mkdir(exist_ok=True)
@@ -243,19 +243,19 @@ def quick_generate_dataset(feature_names, context, output_size, output_formats, 
     
     # Display success summary
     success_text = f"""
-✅ [green]Quick Dataset Generation Complete![/green]
+[green]Quick Dataset Generation Complete![/green]
 
-📊 **Generated Dataset:**
+**Generated Dataset:**
 • Rows: {stats['total_rows']:,}
 • Columns: {stats['total_columns']}
 • Scenarios: {stats['scenarios_used']}
 • Context: {context}
 
-💾 **Output Files:**
+**Output Files:**
 {chr(10).join(f"• {Path(f).name}" for f in exported_files)}
     """
     
-    console.print(Panel(success_text, title="✅ Success", border_style="green"))
+    console.print(Panel(success_text, title="Success", border_style="green"))
     
     # Show target distribution if available
     if stats['target_distribution']:
@@ -313,11 +313,11 @@ def main():
     
     # Display input summary
     console.print(Panel(
-        f"⚡ **Features:** {', '.join(args.features[:5])}{'...' if len(args.features) > 5 else ''}\n"
-        f"⚡ **Context:** {args.context}\n"
-        f"⚡ **Size:** {args.size:,} rows\n"
-        f"⚡ **Formats:** {', '.join(args.formats)}",
-        title="⚡ Quick Dataset Generation",
+        f"**Features:** {', '.join(args.features[:5])}{'...' if len(args.features) > 5 else ''}\n"
+        f"**Context:** {args.context}\n"
+        f"**Size:** {args.size:,} rows\n"
+        f"**Formats:** {', '.join(args.formats)}",
+        title="Quick Dataset Generation",
         border_style="yellow"
     ))
     
@@ -331,11 +331,11 @@ def main():
             output_dir=args.output_dir
         )
         
-        console.print(f"\n[green]🎉 Success! Generated files in: {args.output_dir}[/green]")
-        console.print(f"[cyan]💡 Tip: Use auto_dataset_cli.py for LLM-powered comprehensive scenarios[/cyan]")
+        console.print(f"\n[green]Success! Generated files in: {args.output_dir}[/green]")
+        console.print(f"[cyan]Tip: Use auto_dataset_cli.py for LLM-powered comprehensive scenarios[/cyan]")
         
     except Exception as e:
-        console.print(f"\n[red]❌ Generation failed: {e}[/red]")
+        console.print(f"\n[red]Generation failed: {e}[/red]")
         sys.exit(1)
 
 if __name__ == "__main__":
